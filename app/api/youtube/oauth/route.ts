@@ -3,6 +3,19 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { encrypt, createUserKey } from "@/lib/encryption";
 
+// Helper function to get base URL without port
+function getBaseUrl(request: NextRequest): string {
+  const origin = request.headers.get("origin") || 
+                 request.headers.get("referer")?.split("/").slice(0, 3).join("/");
+  
+  if (origin) {
+    return origin;
+  }
+  
+  // Fallback: construct from hostname (without port for Codespaces)
+  return `${request.nextUrl.protocol}//${request.nextUrl.hostname}`;
+}
+
 // Handle OAuth callback and store token
 export async function GET(request: NextRequest) {
   try {
@@ -17,10 +30,7 @@ export async function GET(request: NextRequest) {
     const error = searchParams.get("error");
 
     if (error) {
-      // Construct proper redirect URL without port
-      const baseUrl = request.headers.get("origin") || 
-                     request.headers.get("referer")?.split("/").slice(0, 3).join("/") ||
-                     `${request.nextUrl.protocol}//${request.nextUrl.hostname}`;
+      const baseUrl = getBaseUrl(request);
       return NextResponse.redirect(`${baseUrl}/dashboard?error=${encodeURIComponent(error)}`);
     }
 
@@ -29,18 +39,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get the base URL from the request (without port for Codespaces)
-    const origin = request.headers.get("origin") || 
-                   request.headers.get("referer")?.split("/").slice(0, 3).join("/");
-    
-    // For Codespaces, remove port from hostname
-    let baseUrl = origin;
-    if (!baseUrl) {
-      const hostname = request.nextUrl.hostname;
-      const protocol = request.nextUrl.protocol;
-      // Remove port if it's in the hostname (Codespaces URLs don't need ports)
-      baseUrl = `${protocol}//${hostname}`;
-    }
-    
+    const baseUrl = getBaseUrl(request);
     const redirectUri = `${baseUrl}/api/youtube/oauth`;
 
     // Exchange code for tokens
@@ -61,10 +60,8 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
       console.error("Token exchange error:", errorData);
-      const origin = request.headers.get("origin") || 
-                     request.headers.get("referer")?.split("/").slice(0, 3).join("/") ||
-                     `${request.nextUrl.protocol}//${request.nextUrl.hostname}`;
-      return NextResponse.redirect(`${origin}/dashboard?error=token_exchange_failed`);
+      const baseUrl = getBaseUrl(request);
+      return NextResponse.redirect(`${baseUrl}/dashboard?error=token_exchange_failed`);
     }
 
     const tokens = await tokenResponse.json();
@@ -101,16 +98,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const origin = request.headers.get("origin") || 
-                   request.headers.get("referer")?.split("/").slice(0, 3).join("/") ||
-                   `${request.nextUrl.protocol}//${request.nextUrl.hostname}`;
-    return NextResponse.redirect(`${origin}/dashboard?youtube_connected=true`);
+    const baseUrl = getBaseUrl(request);
+    return NextResponse.redirect(`${baseUrl}/dashboard?youtube_connected=true`);
   } catch (error) {
     console.error("YouTube OAuth error:", error);
-    const origin = request.headers.get("origin") || 
-                   request.headers.get("referer")?.split("/").slice(0, 3).join("/") ||
-                   `${request.nextUrl.protocol}//${request.nextUrl.hostname}`;
-    return NextResponse.redirect(`${origin}/dashboard?error=oauth_failed`);
+    const baseUrl = getBaseUrl(request);
+    return NextResponse.redirect(`${baseUrl}/dashboard?error=oauth_failed`);
   }
 }
 
