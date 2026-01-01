@@ -89,18 +89,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No authorization code provided" }, { status: 400 });
     }
 
-    // Extract the redirect URI from the actual request URL
-    // Google redirects back to the exact redirect_uri we sent, so use the request URL
-    // Construct redirect_uri by removing the query parameters (code, scope, etc.)
-    // Use hostname instead of host to avoid including port number
-    const redirectUri = `${requestUrlObj.protocol}//${requestUrlObj.hostname}${requestUrlObj.pathname}`;
+    // Extract the redirect URI - handle Codespaces forwarding
+    // When Codespaces forwards, request.url shows localhost, but we need the public URL
+    // Check headers for the actual public URL that Google called
+    let redirectUriHost = requestUrlObj.hostname;
+    
+    // Check for forwarded host (Codespaces sets this)
+    const forwardedHost = request.headers.get("x-forwarded-host") || 
+                         request.headers.get("host");
+    
+    // If we got localhost but there's a forwarded host with .app.github.dev, use that
+    if ((redirectUriHost === "localhost" || redirectUriHost === "127.0.0.1") && forwardedHost) {
+      const hostWithoutPort = forwardedHost.split(":")[0];
+      if (hostWithoutPort.includes(".app.github.dev")) {
+        redirectUriHost = hostWithoutPort;
+      }
+    }
+    
+    // Construct redirect_uri using the correct hostname
+    const redirectUri = `${requestUrlObj.protocol}//${redirectUriHost}${requestUrlObj.pathname}`;
     
     // Log for debugging
     console.log("OAuth callback received:", {
       requestUrl: request.url,
       redirectUri,
       hostHeader: request.headers.get("host"),
+      forwardedHost: request.headers.get("x-forwarded-host"),
       originHeader: request.headers.get("origin"),
+      redirectUriHost,
       hasCode: !!code,
     });
 

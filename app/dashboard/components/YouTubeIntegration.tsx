@@ -93,7 +93,14 @@ export default function YouTubeIntegration() {
 
   const handleConnect = () => {
     setError(null);
-    const redirectUri = `${window.location.origin}/api/youtube/oauth`;
+    
+    // Get the actual origin from the current URL (handles Codespaces forwarding)
+    // Use the full URL and extract origin to avoid localhost issues
+    const currentUrl = new URL(window.location.href);
+    const redirectUri = `${currentUrl.protocol}//${currentUrl.hostname}/api/youtube/oauth`;
+    
+    console.log("Initiating OAuth with redirect URI:", redirectUri);
+    
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     
     if (!clientId) {
