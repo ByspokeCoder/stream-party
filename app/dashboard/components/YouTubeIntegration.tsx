@@ -19,20 +19,28 @@ export default function YouTubeIntegration() {
 
   // Check if YouTube is connected and handle URL parameters
   useEffect(() => {
-    // Check for success/error messages in URL
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("youtube_connected") === "true") {
-      setError(null);
-      setIsConnected(true);
-      fetchSubscriptions();
-      // Clean URL
-      window.history.replaceState({}, "", window.location.pathname);
-    } else if (params.get("error")) {
-      setError(params.get("error") || "Connection failed");
-      // Clean URL
-      window.history.replaceState({}, "", window.location.pathname);
-    } else {
-      checkConnection();
+    // Only run on client side
+    if (typeof window === "undefined") return;
+    
+    try {
+      // Check for success/error messages in URL
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("youtube_connected") === "true") {
+        setError(null);
+        setIsConnected(true);
+        fetchSubscriptions();
+        // Clean URL
+        window.history.replaceState({}, "", window.location.pathname);
+      } else if (params.get("error")) {
+        setError(params.get("error") || "Connection failed");
+        // Clean URL
+        window.history.replaceState({}, "", window.location.pathname);
+      } else {
+        checkConnection();
+      }
+    } catch (error) {
+      console.error("Error in YouTube integration useEffect:", error);
+      // Still show the component even if there's an error
     }
   }, []);
 
