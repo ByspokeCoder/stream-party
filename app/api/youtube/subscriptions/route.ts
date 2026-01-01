@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { decrypt, createUserKey } from "@/lib/encryption";
+import { decrypt, encrypt, createUserKey } from "@/lib/encryption";
 import { google } from "googleapis";
 
 // GET - Fetch YouTube subscriptions
