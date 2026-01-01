@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
           },
           body: new URLSearchParams({
             refresh_token: tokenData.refresh_token,
-            client_id: process.env.GOOGLE_CLIENT_ID!,
+            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID!,
             client_secret: process.env.GOOGLE_CLIENT_SECRET!,
             grant_type: "refresh_token",
           }),
@@ -113,15 +113,24 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ subscriptions: formattedSubscriptions });
   } catch (error: any) {
-    console.error("Error fetching YouTube subscriptions:", error);
+    console.error("Error fetching YouTube subscriptions:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      stack: error.stack,
+    });
     
     // Handle specific YouTube API errors
     if (error.response?.status === 401) {
       return NextResponse.json({ error: "Token expired or invalid. Please reconnect." }, { status: 401 });
     }
     
+    if (error.response?.status === 403) {
+      return NextResponse.json({ error: "YouTube API access denied. Please check API permissions." }, { status: 403 });
+    }
+    
     return NextResponse.json(
-      { error: "Failed to fetch subscriptions" },
+      { error: error.message || "Failed to fetch subscriptions" },
       { status: 500 }
     );
   }
