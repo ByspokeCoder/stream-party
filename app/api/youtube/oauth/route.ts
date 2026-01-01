@@ -65,8 +65,9 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get("code");
     const error = searchParams.get("error");
 
-    // Get the base URL once (without port for Codespaces)
-    const baseUrl = getBaseUrl(request);
+    // Extract base URL from the actual request URL (most reliable)
+    const requestUrlObj = new URL(request.url);
+    const baseUrl = `${requestUrlObj.protocol}//${requestUrlObj.host}`;
 
     // Helper to create redirect URL
     const createRedirectUrl = (path: string, params?: Record<string, string>) => {
@@ -89,7 +90,6 @@ export async function GET(request: NextRequest) {
 
     // Extract the redirect URI from the actual request URL
     // Google redirects back to the exact redirect_uri we sent, so use the request URL
-    const requestUrlObj = new URL(request.url);
     // Construct redirect_uri by removing the query parameters (code, scope, etc.)
     const redirectUri = `${requestUrlObj.protocol}//${requestUrlObj.host}${requestUrlObj.pathname}`;
     
@@ -178,7 +178,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(createRedirectUrl("/dashboard", { youtube_connected: "true" }));
   } catch (error) {
     console.error("YouTube OAuth error:", error);
-    const baseUrl = getBaseUrl(request);
+    const requestUrlObj = new URL(request.url);
+    const baseUrl = `${requestUrlObj.protocol}//${requestUrlObj.host}`;
     const createRedirectUrl = (path: string, params?: Record<string, string>) => {
       const url = new URL(path, baseUrl);
       if (params) {
