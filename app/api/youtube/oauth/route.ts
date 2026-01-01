@@ -5,15 +5,21 @@ import { encrypt, createUserKey } from "@/lib/encryption";
 
 // Helper function to get base URL without port
 function getBaseUrl(request: NextRequest): string {
-  const origin = request.headers.get("origin") || 
-                 request.headers.get("referer")?.split("/").slice(0, 3).join("/");
-  
-  if (origin) {
-    return origin;
+  // Use the host header first (most reliable for Codespaces)
+  const host = request.headers.get("host");
+  if (host) {
+    // Remove port from host header if present (Codespaces URLs don't need ports)
+    const hostWithoutPort = host.split(":")[0];
+    // Always use https for Codespaces
+    return `https://${hostWithoutPort}`;
   }
   
-  // Fallback: construct from hostname (without port for Codespaces)
-  return `${request.nextUrl.protocol}//${request.nextUrl.hostname}`;
+  // Fallback: extract from request URL
+  const requestUrl = new URL(request.url);
+  const protocol = requestUrl.protocol || "https:";
+  const hostname = requestUrl.hostname;
+  
+  return `${protocol}//${hostname}`;
 }
 
 // Handle OAuth callback and store token
