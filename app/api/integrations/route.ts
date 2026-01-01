@@ -17,9 +17,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Create user-specific key from session ID
-    // This ensures tokens can only be decrypted during active sessions
-    const userKey = createUserKey(userId, sessionId);
+    // Create user-specific key (stable across sessions)
+    const userKey = createUserKey(userId);
 
     // Fetch integrations from database
     const integrations = await prisma.userIntegration.findMany({
@@ -92,9 +91,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user-specific key from session ID
-    // This ensures tokens can only be decrypted during active sessions
-    const userKey = createUserKey(userId, sessionId);
+    // Create user-specific key (stable across sessions)
+    const userKey = createUserKey(userId);
 
     // Encrypt the token
     const encryptedToken = encrypt(token, userKey);

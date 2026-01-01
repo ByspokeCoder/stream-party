@@ -164,8 +164,8 @@ export async function GET(request: NextRequest) {
     const tokens = await tokenResponse.json();
     const { access_token, refresh_token, expires_in } = tokens;
 
-    // Create user-specific key from session
-    const userKey = createUserKey(userId, sessionId);
+    // Create user-specific key (stable across sessions)
+    const userKey = createUserKey(userId);
 
     // Encrypt the tokens (store both access and refresh tokens)
     const tokenData = JSON.stringify({

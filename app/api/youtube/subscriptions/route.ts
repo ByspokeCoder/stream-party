@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "YouTube not connected" }, { status: 404 });
     }
 
-    // Create user-specific key from session
-    const userKey = createUserKey(userId, sessionId);
+    // Create user-specific key (stable across sessions)
+    const userKey = createUserKey(userId);
 
     // Decrypt token
     let tokenData;

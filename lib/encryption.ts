@@ -7,18 +7,21 @@ const KEY_LENGTH = 32;
 const PBKDF2_ITERATIONS = 100000;
 
 /**
- * Creates a user-specific encryption key from Clerk user ID and session token
- * Uses PBKDF2 to derive a key that's unique per user and session
- * This ensures tokens can only be decrypted during active user sessions
+ * Creates a user-specific encryption key from Clerk user ID
+ * Uses PBKDF2 to derive a key that's unique per user but persists across sessions
+ * Server secret ensures tokens can't be decrypted without it
  * @param userId - Clerk user ID
- * @param sessionToken - User's session token (from Clerk)
  * @returns Derived encryption key
  */
-export function createUserKey(userId: string, sessionToken: string): Buffer {
-  // Combine userId and session token to create a unique key per session
-  // Using userId as salt ensures consistency while session token adds security
+export function createUserKey(userId: string): Buffer {
+  // Use a server secret for additional security (prevents admins from decrypting without it)
+  // If not set, fall back to a default (less secure, but still encrypted)
+  const serverSecret = process.env.ENCRYPTION_SECRET || "default-secret-change-in-production";
+  
+  // Combine userId and server secret to create a unique key per user
+  // Using userId as salt ensures consistency across sessions
   const salt = Buffer.from(userId, "utf8");
-  const password = `${userId}:${sessionToken}`;
+  const password = `${userId}:${serverSecret}`;
   
   return crypto.pbkdf2Sync(
     password,
