@@ -11,8 +11,7 @@ export default function Signup() {
               card: "shadow-lg",
             },
           }}
-          routing="path"
-          path="/signup"
+          routing="hash"
           signInUrl="/login"
           afterSignUpUrl="/dashboard"
         />
