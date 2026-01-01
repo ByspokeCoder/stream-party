@@ -8,10 +8,10 @@ function getBaseUrl(request: NextRequest): string {
   // Use the host header first (most reliable for Codespaces)
   const host = request.headers.get("host");
   if (host) {
-    // Remove port from host header if present (Codespaces URLs don't need ports)
-    const hostWithoutPort = host.split(":")[0];
-    // Always use https for Codespaces
-    return `https://${hostWithoutPort}`;
+    // For Codespaces, the host might be like "miniature-waddle-vw4jvvqv776cxp7g-443.app.github.dev"
+    // We need to keep the full hostname but ensure we use https
+    // The port number (like -443) is part of the hostname in Codespaces, not a separate port
+    return `https://${host}`;
   }
   
   // Fallback: extract from request URL
@@ -53,6 +53,9 @@ export async function GET(request: NextRequest) {
       baseUrl,
       redirectUri,
       hasCode: !!code,
+      requestUrl: request.url,
+      hostHeader: request.headers.get("host"),
+      originHeader: request.headers.get("origin"),
     });
 
     // Use NEXT_PUBLIC_GOOGLE_CLIENT_ID for consistency (same value, accessible on server)
