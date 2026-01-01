@@ -87,16 +87,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No authorization code provided" }, { status: 400 });
     }
 
-    const redirectUri = `${baseUrl}/api/youtube/oauth`;
+    // Extract the redirect URI from the actual request URL
+    // Google redirects back to the exact redirect_uri we sent, so use the request URL
+    const requestUrlObj = new URL(request.url);
+    // Construct redirect_uri by removing the query parameters (code, scope, etc.)
+    const redirectUri = `${requestUrlObj.protocol}//${requestUrlObj.host}${requestUrlObj.pathname}`;
     
     // Log for debugging
     console.log("OAuth callback received:", {
-      baseUrl,
-      redirectUri,
-      hasCode: !!code,
       requestUrl: request.url,
+      redirectUri,
       hostHeader: request.headers.get("host"),
       originHeader: request.headers.get("origin"),
+      hasCode: !!code,
     });
 
     // Use NEXT_PUBLIC_GOOGLE_CLIENT_ID for consistency (same value, accessible on server)
