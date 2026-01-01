@@ -22,3 +22,16 @@ model UserIntegration {
   @@index([userId])
 }
 
+model SelectedSubscription {
+  id            String   @id @default(cuid())
+  userId        String   // Clerk user ID
+  platform      String   // e.g., "youtube"
+  subscriptionId String  // Platform-specific subscription/channel ID
+  selected      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, platform, subscriptionId])
+  @@index([userId, platform])
+}
+

@@ -136,6 +136,19 @@ export async function GET(request: NextRequest) {
 
     const subscriptions = subscriptionsResponse.data.items || [];
 
+    // Get selection state for all subscriptions
+    const selections = await prisma.selectedSubscription.findMany({
+      where: {
+        userId,
+        platform: "youtube",
+      },
+    });
+
+    const selectionMap: Record<string, boolean> = {};
+    selections.forEach((sel) => {
+      selectionMap[sel.subscriptionId] = sel.selected;
+    });
+
     // Format subscription data (only metadata, no video content)
     const formattedSubscriptions = subscriptions.map((sub) => ({
       id: sub.id,
@@ -144,6 +157,7 @@ export async function GET(request: NextRequest) {
       description: sub.snippet?.description,
       thumbnail: sub.snippet?.thumbnails?.default?.url,
       publishedAt: sub.snippet?.publishedAt,
+      selected: selectionMap[sub.id] || false, // Include selection state
     }));
 
     return NextResponse.json({ subscriptions: formattedSubscriptions });

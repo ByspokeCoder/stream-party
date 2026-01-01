@@ -9,6 +9,7 @@ interface Subscription {
   description?: string;
   thumbnail?: string;
   publishedAt?: string;
+  selected?: boolean;
 }
 
 export default function YouTubeIntegration() {
@@ -88,6 +89,49 @@ export default function YouTubeIntegration() {
       setError("Failed to fetch subscriptions");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleSelection = async (subscriptionId: string, currentlySelected: boolean) => {
+    const newSelected = !currentlySelected;
+    
+    // Optimistically update UI
+    setSubscriptions((prev) =>
+      prev.map((sub) =>
+        sub.id === subscriptionId ? { ...sub, selected: newSelected } : sub
+      )
+    );
+
+    try {
+      const response = await fetch("/api/youtube/subscriptions/select", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subscriptionId,
+          selected: newSelected,
+        }),
+      });
+
+      if (!response.ok) {
+        // Revert on error
+        setSubscriptions((prev) =>
+          prev.map((sub) =>
+            sub.id === subscriptionId ? { ...sub, selected: currentlySelected } : sub
+          )
+        );
+        const data = await response.json();
+        setError(data.error || "Failed to update selection");
+      }
+    } catch (error) {
+      // Revert on error
+      setSubscriptions((prev) =>
+        prev.map((sub) =>
+          sub.id === subscriptionId ? { ...sub, selected: currentlySelected } : sub
+        )
+      );
+      setError("Failed to update selection");
     }
   };
 
@@ -249,19 +293,28 @@ export default function YouTubeIntegration() {
             <p className="text-gray-500 dark:text-gray-400">No subscriptions found.</p>
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                Select which subscriptions you want to view on Stream Party:
+              </p>
               {subscriptions.map((sub) => (
                 <div
                   key={sub.id}
-                  className="flex items-start space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-md"
+                  className="flex items-start space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
+                  <input
+                    type="checkbox"
+                    checked={sub.selected || false}
+                    onChange={() => handleToggleSelection(sub.id, sub.selected || false)}
+                    className="mt-1 w-5 h-5 text-red-600 border-gray-300 rounded focus:ring-red-500 focus:ring-2 cursor-pointer"
+                  />
                   {sub.thumbnail && (
                     <img
                       src={sub.thumbnail}
                       alt={sub.title}
-                      className="w-16 h-16 rounded-full object-cover"
+                      className="w-16 h-16 rounded-full object-cover flex-shrink-0"
                     />
                   )}
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-gray-800 dark:text-gray-200">
                       {sub.title}
                     </h4>
@@ -278,6 +331,11 @@ export default function YouTubeIntegration() {
                   </div>
                 </div>
               ))}
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>Selected:</strong> {subscriptions.filter((s) => s.selected).length} of {subscriptions.length} subscriptions
+                </p>
+              </div>
             </div>
           )}
         </div>
