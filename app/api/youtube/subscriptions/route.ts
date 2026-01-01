@@ -111,9 +111,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Create OAuth2Client and set credentials
-    // OAuth2Client is available from googleapis
-    const { OAuth2Client } = await import("google-auth-library");
+    // Create OAuth2Client and set credentials for proper authentication
+    const { OAuth2Client } = require("google-auth-library");
     const oauth2Client = new OAuth2Client(
       clientId,
       clientSecret
@@ -126,7 +125,7 @@ export async function GET(request: NextRequest) {
 
     const youtube = google.youtube({
       version: "v3",
-      auth: oauth2Client, // Use OAuth2Client instead of plain token
+      auth: oauth2Client, // Use OAuth2Client for proper OAuth authentication
     });
 
     const subscriptionsResponse = await youtube.subscriptions.list({
