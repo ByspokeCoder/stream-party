@@ -16,6 +16,12 @@ export default function YouTubeIntegration() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure component only runs on client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Check if YouTube is connected and handle URL parameters
   useEffect(() => {
@@ -131,8 +137,20 @@ export default function YouTubeIntegration() {
     }
   };
 
+  // Don't render until mounted (prevents hydration issues)
+  if (!mounted) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+          YouTube Integration
+        </h2>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">Loading...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
