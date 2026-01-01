@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import IntegrationForm from "./components/IntegrationForm";
 
 export default async function Dashboard() {
   const user = await currentUser();
@@ -11,10 +12,10 @@ export default async function Dashboard() {
   const username = user.username || user.firstName || user.emailAddresses[0]?.emailAddress || "User";
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <div className="max-w-2xl w-full">
+    <main className="flex min-h-screen flex-col items-center justify-start p-8">
+      <div className="max-w-4xl w-full">
         <h1 className="text-4xl font-bold text-center mb-6">Dashboard</h1>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
           <p className="text-xl text-center text-gray-700 dark:text-gray-300">
             Logged in as <span className="font-semibold">{username}</span>
           </p>
@@ -24,6 +25,7 @@ export default async function Dashboard() {
             </p>
           )}
         </div>
+        <IntegrationForm />
       </div>
     </main>
   );

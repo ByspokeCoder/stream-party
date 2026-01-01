@@ -64,12 +64,34 @@ Quick setup:
    - `CLERK_SECRET_KEY`
 4. Restart your development server
 
+## Database Setup
+
+This application uses Prisma ORM with PostgreSQL for secure credential storage.
+
+**You must set up a database before using the integration features.**
+
+See [DATABASE_SETUP.md](./DATABASE_SETUP.md) for detailed setup instructions.
+
+Quick setup:
+1. Create a free PostgreSQL database at [Neon](https://neon.tech) or [Supabase](https://supabase.com)
+2. Copy your database connection string
+3. Add it as a GitHub Codespaces secret: `DATABASE_URL`
+4. In Codespaces, run:
+   ```bash
+   npm install
+   npx prisma generate
+   npx prisma migrate dev --name init
+   ```
+
 ## Features
 
 - ✅ User authentication with Clerk (email/password and OAuth)
 - ✅ Protected dashboard route
 - ✅ Sign up, Login, and Logout functionality
 - ✅ Server-side session handling
+- ✅ Secure credential storage with AES-256 encryption
+- ✅ User-specific encryption keys (PBKDF2 derived)
+- ✅ Integration token management
 
 ## Tech Stack
 
@@ -77,4 +99,7 @@ Quick setup:
 - TypeScript
 - Tailwind CSS
 - Clerk (Authentication)
+- Prisma ORM (Database)
+- PostgreSQL (Cloud Database)
+- AES-256-GCM (Encryption)
 

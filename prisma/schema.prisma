@@ -1,0 +1,24 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserIntegration {
+  id            String   @id @default(cuid())
+  userId        String   // Clerk user ID
+  platform      String   // e.g., "youtube", "twitch", "custom"
+  encryptedToken String  // AES-256 encrypted token
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, platform])
+  @@index([userId])
+}
+
