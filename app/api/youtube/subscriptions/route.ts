@@ -3,6 +3,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { decrypt, encrypt, createUserKey } from "@/lib/encryption";
 import { google } from "googleapis";
+import { OAuth2Client } from "google-auth-library";
 
 // GET - Fetch YouTube subscriptions
 export async function GET(request: NextRequest) {
@@ -100,6 +101,8 @@ export async function GET(request: NextRequest) {
     // Fetch subscriptions using YouTube Data API v3
     // YouTube Data API requires both OAuth token and API key
     const apiKey = process.env.YOUTUBE_API_KEY || process.env.GOOGLE_API_KEY;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     
     if (!apiKey) {
       console.error("YouTube API key not configured");
@@ -109,16 +112,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Create OAuth2Client and set credentials
+    const oauth2Client = new OAuth2Client(
+      clientId,
+      clientSecret,
+      undefined // redirect URL not needed for token refresh
+    );
+    
+    // Set the access token
+    oauth2Client.setCredentials({
+      access_token: accessToken,
+    });
+
     const youtube = google.youtube({
       version: "v3",
-      auth: accessToken, // OAuth token for user-specific data
+      auth: oauth2Client, // Use OAuth2Client instead of plain token
     });
 
     const subscriptionsResponse = await youtube.subscriptions.list({
       part: ["snippet", "contentDetails"],
       mine: true,
       maxResults: 50,
-      key: apiKey, // API key is required even with OAuth token
     });
 
     const subscriptions = subscriptionsResponse.data.items || [];
