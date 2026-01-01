@@ -3,7 +3,6 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { decrypt, encrypt, createUserKey } from "@/lib/encryption";
 import { google } from "googleapis";
-import { OAuth2Client } from "google-auth-library";
 
 // GET - Fetch YouTube subscriptions
 export async function GET(request: NextRequest) {
@@ -113,10 +112,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Create OAuth2Client and set credentials
+    // OAuth2Client is available from googleapis
+    const { OAuth2Client } = await import("google-auth-library");
     const oauth2Client = new OAuth2Client(
       clientId,
-      clientSecret,
-      undefined // redirect URL not needed for token refresh
+      clientSecret
     );
     
     // Set the access token
