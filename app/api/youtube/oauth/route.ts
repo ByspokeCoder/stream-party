@@ -29,8 +29,10 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get("code");
     const error = searchParams.get("error");
 
+    // Get the base URL once (without port for Codespaces)
+    const baseUrl = getBaseUrl(request);
+
     if (error) {
-      const baseUrl = getBaseUrl(request);
       return NextResponse.redirect(`${baseUrl}/dashboard?error=${encodeURIComponent(error)}`);
     }
 
@@ -38,8 +40,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No authorization code provided" }, { status: 400 });
     }
 
-    // Get the base URL from the request (without port for Codespaces)
-    const baseUrl = getBaseUrl(request);
     const redirectUri = `${baseUrl}/api/youtube/oauth`;
 
     // Exchange code for tokens
@@ -60,7 +60,6 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
       console.error("Token exchange error:", errorData);
-      const baseUrl = getBaseUrl(request);
       return NextResponse.redirect(`${baseUrl}/dashboard?error=token_exchange_failed`);
     }
 
@@ -98,7 +97,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const baseUrl = getBaseUrl(request);
     return NextResponse.redirect(`${baseUrl}/dashboard?youtube_connected=true`);
   } catch (error) {
     console.error("YouTube OAuth error:", error);
