@@ -88,15 +88,27 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch subscriptions using YouTube Data API v3
+    // YouTube Data API requires both OAuth token and API key
+    const apiKey = process.env.YOUTUBE_API_KEY || process.env.GOOGLE_API_KEY;
+    
+    if (!apiKey) {
+      console.error("YouTube API key not configured");
+      return NextResponse.json(
+        { error: "YouTube API key not configured. Please contact administrator." },
+        { status: 500 }
+      );
+    }
+
     const youtube = google.youtube({
       version: "v3",
-      auth: accessToken,
+      auth: accessToken, // OAuth token for user-specific data
     });
 
     const subscriptionsResponse = await youtube.subscriptions.list({
       part: ["snippet", "contentDetails"],
       mine: true,
       maxResults: 50,
+      key: apiKey, // API key is required even with OAuth token
     });
 
     const subscriptions = subscriptionsResponse.data.items || [];
