@@ -41,6 +41,25 @@ export async function GET(request: NextRequest) {
     }
 
     const redirectUri = `${baseUrl}/api/youtube/oauth`;
+    
+    // Log for debugging
+    console.log("OAuth callback received:", {
+      baseUrl,
+      redirectUri,
+      hasCode: !!code,
+    });
+
+    // Use NEXT_PUBLIC_GOOGLE_CLIENT_ID for consistency (same value, accessible on server)
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      console.error("Missing Google OAuth credentials:", {
+        hasClientId: !!clientId,
+        hasClientSecret: !!clientSecret,
+      });
+      return NextResponse.redirect(`${baseUrl}/dashboard?error=oauth_not_configured`);
+    }
 
     // Exchange code for tokens
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
@@ -50,8 +69,8 @@ export async function GET(request: NextRequest) {
       },
       body: new URLSearchParams({
         code,
-        client_id: process.env.GOOGLE_CLIENT_ID!,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        client_id: clientId,
+        client_secret: clientSecret,
         redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }),
@@ -59,7 +78,13 @@ export async function GET(request: NextRequest) {
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
-      console.error("Token exchange error:", errorData);
+      console.error("Token exchange error:", {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        error: errorData,
+        redirectUri,
+        clientId: clientId ? `${clientId.substring(0, 10)}...` : 'missing',
+      });
       return NextResponse.redirect(`${baseUrl}/dashboard?error=token_exchange_failed`);
     }
 
