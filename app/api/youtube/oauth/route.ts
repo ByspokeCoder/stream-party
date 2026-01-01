@@ -5,22 +5,51 @@ import { encrypt, createUserKey } from "@/lib/encryption";
 
 // Helper function to get base URL without port
 function getBaseUrl(request: NextRequest): string {
-  // Use the host header first (most reliable for Codespaces)
-  const host = request.headers.get("host");
-  if (host) {
-    // Remove any port number from the host header (e.g., "hostname:3000" -> "hostname")
-    // In Codespaces, ports like -3000 are part of the hostname, not separate ports
-    const hostWithoutPort = host.split(":")[0];
-    // Always use https for Codespaces
-    return `https://${hostWithoutPort}`;
+  const requestUrl = new URL(request.url);
+  const hostname = requestUrl.hostname;
+  const protocol = requestUrl.protocol || "https:";
+  
+  // If hostname is localhost, try to get from host header or referer
+  // This handles cases where the request is proxied
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    // Check for Codespaces URL in referer or origin headers
+    const referer = request.headers.get("referer");
+    const origin = request.headers.get("origin");
+    
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer);
+        if (refererUrl.hostname.includes(".app.github.dev")) {
+          return `https://${refererUrl.hostname}`;
+        }
+      } catch (e) {
+        // Ignore URL parse errors
+      }
+    }
+    
+    if (origin && origin !== "null") {
+      try {
+        const originUrl = new URL(origin);
+        if (originUrl.hostname.includes(".app.github.dev")) {
+          return origin;
+        }
+      } catch (e) {
+        // Ignore URL parse errors
+      }
+    }
+    
+    // Check host header for Codespaces domain
+    const host = request.headers.get("host");
+    if (host && host.includes(".app.github.dev")) {
+      const hostWithoutPort = host.split(":")[0];
+      return `https://${hostWithoutPort}`;
+    }
   }
   
-  // Fallback: extract from request URL
-  const requestUrl = new URL(request.url);
-  const protocol = requestUrl.protocol || "https:";
-  const hostname = requestUrl.hostname;
-  
-  return `${protocol}//${hostname}`;
+  // Use hostname from request URL (should be correct for OAuth callbacks from Google)
+  // Remove port if present
+  const hostnameWithoutPort = hostname.split(":")[0];
+  return `${protocol}//${hostnameWithoutPort}`;
 }
 
 // Handle OAuth callback and store token
