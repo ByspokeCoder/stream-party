@@ -27,10 +27,14 @@ This guide explains the ONE-TIME setup required by the developer/admin to enable
 5. Create OAuth Client ID:
    - Application type: **Web application**
    - Name: "Stream Party Web"
-   - Authorized redirect URIs: Add your redirect URI:
-     - For Codespaces: `https://YOUR-CODESPACE-URL.app.github.dev/api/youtube/oauth`
-     - For local: `http://localhost:3000/api/youtube/oauth`
-     - For production: `https://your-domain.com/api/youtube/oauth`
+   - Authorized redirect URIs: Add ALL of these redirect URIs (one per line):
+     - `https://YOUR-CODESPACE-URL.app.github.dev/api/youtube/oauth` (replace with your actual Codespaces URL)
+     - `https://YOUR-CODESPACE-URL-3000.app.github.dev/api/youtube/oauth` (port 3000)
+     - `https://YOUR-CODESPACE-URL-3001.app.github.dev/api/youtube/oauth` (port 3001)
+     - `https://YOUR-CODESPACE-URL-3002.app.github.dev/api/youtube/oauth` (port 3002)
+     - `http://localhost:3000/api/youtube/oauth` (for local testing)
+     - `http://localhost:3001/api/youtube/oauth` (for local testing)
+   - **Important**: Replace `YOUR-CODESPACE-URL` with your actual Codespaces domain (the part before `.app.github.dev`)
    - Click **Create**
    - Copy the **Client ID** and **Client Secret**
 
