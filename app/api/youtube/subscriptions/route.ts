@@ -40,13 +40,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to decrypt token. Please reconnect." }, { status: 401 });
     }
 
-    // Check if token is expired and refresh if needed
+    // Check if token is expired or about to expire (refresh 5 minutes before expiry)
     let accessToken = tokenData.access_token;
-    if (Date.now() >= tokenData.expires_at) {
-      // Token expired, refresh it
+    const fiveMinutesInMs = 5 * 60 * 1000;
+    if (Date.now() >= (tokenData.expires_at - fiveMinutesInMs)) {
+      // Token expired or about to expire, refresh it
       if (!tokenData.refresh_token) {
+        console.error("Token expired but no refresh token available");
         return NextResponse.json({ error: "Token expired. Please reconnect." }, { status: 401 });
       }
+      
+      console.log("Refreshing YouTube access token...");
 
       try {
         const refreshResponse = await fetch("https://oauth2.googleapis.com/token", {
@@ -63,6 +67,11 @@ export async function GET(request: NextRequest) {
         });
 
         if (!refreshResponse.ok) {
+          const errorText = await refreshResponse.text();
+          console.error("Token refresh failed:", {
+            status: refreshResponse.status,
+            error: errorText,
+          });
           return NextResponse.json({ error: "Token refresh failed. Please reconnect." }, { status: 401 });
         }
 
@@ -81,6 +90,7 @@ export async function GET(request: NextRequest) {
           where: { id: integration.id },
           data: { encryptedToken },
         });
+        console.log("YouTube access token refreshed successfully");
       } catch (error) {
         console.error("Token refresh error:", error);
         return NextResponse.json({ error: "Token refresh failed. Please reconnect." }, { status: 401 });
