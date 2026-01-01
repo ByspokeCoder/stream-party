@@ -65,10 +65,23 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get("code");
     const error = searchParams.get("error");
 
-    // Extract base URL from the actual request URL (most reliable)
+    // Extract base URL - handle Codespaces forwarding (same logic as redirectUri)
     const requestUrlObj = new URL(request.url);
-    // Use hostname instead of host to avoid including port number
-    const baseUrl = `${requestUrlObj.protocol}//${requestUrlObj.hostname}`;
+    let baseUrlHost = requestUrlObj.hostname;
+    
+    // Check for forwarded host (Codespaces sets this) - use same logic as redirectUri
+    const forwardedHost = request.headers.get("x-forwarded-host") || 
+                         request.headers.get("host");
+    
+    // If we got localhost but there's a forwarded host with .app.github.dev, use that
+    if ((baseUrlHost === "localhost" || baseUrlHost === "127.0.0.1") && forwardedHost) {
+      const hostWithoutPort = forwardedHost.split(":")[0];
+      if (hostWithoutPort.includes(".app.github.dev")) {
+        baseUrlHost = hostWithoutPort;
+      }
+    }
+    
+    const baseUrl = `${requestUrlObj.protocol}//${baseUrlHost}`;
 
     // Helper to create redirect URL
     const createRedirectUrl = (path: string, params?: Record<string, string>) => {
@@ -92,19 +105,8 @@ export async function GET(request: NextRequest) {
     // Extract the redirect URI - handle Codespaces forwarding
     // When Codespaces forwards, request.url shows localhost, but we need the public URL
     // Check headers for the actual public URL that Google called
-    let redirectUriHost = requestUrlObj.hostname;
-    
-    // Check for forwarded host (Codespaces sets this)
-    const forwardedHost = request.headers.get("x-forwarded-host") || 
-                         request.headers.get("host");
-    
-    // If we got localhost but there's a forwarded host with .app.github.dev, use that
-    if ((redirectUriHost === "localhost" || redirectUriHost === "127.0.0.1") && forwardedHost) {
-      const hostWithoutPort = forwardedHost.split(":")[0];
-      if (hostWithoutPort.includes(".app.github.dev")) {
-        redirectUriHost = hostWithoutPort;
-      }
-    }
+    // Use the same hostname we detected for baseUrl to ensure consistency
+    const redirectUriHost = baseUrlHost;
     
     // Construct redirect_uri using the correct hostname
     const redirectUri = `${requestUrlObj.protocol}//${redirectUriHost}${requestUrlObj.pathname}`;
