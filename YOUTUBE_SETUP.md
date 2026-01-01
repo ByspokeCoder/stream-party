@@ -1,6 +1,8 @@
 # YouTube Integration Setup Guide
 
-This guide explains how to set up Google OAuth 2.0 for YouTube integration.
+**IMPORTANT:** This setup is for **developers/administrators only**. End users do NOT need to do this - they simply click "Connect YouTube" and sign in with Google.
+
+This guide explains the ONE-TIME setup required by the developer/admin to enable YouTube integration for all users.
 
 ## Step 1: Create Google OAuth Credentials
 
@@ -62,12 +64,16 @@ After setting environment variables:
 
 ## Step 4: Test the Integration
 
+Once setup is complete, **any user** can connect their YouTube account:
+
 1. Go to `/dashboard` in your app
-2. Click **Connect YouTube** button
-3. Sign in with your Google account
-4. Authorize the app to access your YouTube data
-5. You should be redirected back to the dashboard
-6. Your YouTube subscriptions should appear
+2. Click **Continue with Google** button (in the YouTube Integration section)
+3. Sign in with their Google account
+4. Authorize the app to access their YouTube data
+5. They'll be redirected back to the dashboard
+6. Their YouTube subscriptions will appear automatically
+
+**No technical knowledge required for end users!** They just click the button and sign in.
 
 ## Security Features
 
