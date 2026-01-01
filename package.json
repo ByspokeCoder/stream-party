@@ -13,7 +13,9 @@
     "react-dom": "^18.3.1",
     "next": "^14.2.5",
     "@clerk/nextjs": "^5.0.0",
-    "@prisma/client": "^5.19.0"
+    "@prisma/client": "^5.19.0",
+    "@react-oauth/google": "^1.0.1",
+    "googleapis": "^144.0.0"
   },
   "devDependencies": {
     "typescript": "^5.5.3",

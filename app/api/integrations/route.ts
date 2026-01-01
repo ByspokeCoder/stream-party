@@ -146,23 +146,34 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
+    const body = await request.json().catch(() => ({}));
+    const platform = body.platform;
 
-    if (!id) {
-      return NextResponse.json({ error: "Integration ID is required" }, { status: 400 });
+    // Support deletion by ID or platform
+    if (id) {
+      // Verify the integration belongs to the user
+      const integration = await prisma.userIntegration.findUnique({
+        where: { id },
+      });
+
+      if (!integration || integration.userId !== userId) {
+        return NextResponse.json({ error: "Integration not found" }, { status: 404 });
+      }
+
+      await prisma.userIntegration.delete({
+        where: { id },
+      });
+    } else if (platform) {
+      // Delete by platform
+      await prisma.userIntegration.deleteMany({
+        where: {
+          userId,
+          platform,
+        },
+      });
+    } else {
+      return NextResponse.json({ error: "Integration ID or platform is required" }, { status: 400 });
     }
-
-    // Verify the integration belongs to the user
-    const integration = await prisma.userIntegration.findUnique({
-      where: { id },
-    });
-
-    if (!integration || integration.userId !== userId) {
-      return NextResponse.json({ error: "Integration not found" }, { status: 404 });
-    }
-
-    await prisma.userIntegration.delete({
-      where: { id },
-    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

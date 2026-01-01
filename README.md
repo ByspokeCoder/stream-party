@@ -83,6 +83,22 @@ Quick setup:
    npx prisma migrate dev --name init
    ```
 
+## YouTube Integration Setup
+
+This application supports YouTube integration via Google OAuth 2.0.
+
+**You must configure Google OAuth before YouTube integration will work.**
+
+See [YOUTUBE_SETUP.md](./YOUTUBE_SETUP.md) for detailed setup instructions.
+
+Quick setup:
+1. Create Google OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable YouTube Data API v3
+3. Add credentials as GitHub Codespaces secrets:
+   - `NEXT_PUBLIC_GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+4. Restart your development server
+
 ## Features
 
 - ✅ User authentication with Clerk (email/password and OAuth)
@@ -92,6 +108,9 @@ Quick setup:
 - ✅ Secure credential storage with AES-256 encryption
 - ✅ User-specific encryption keys (PBKDF2 derived)
 - ✅ Integration token management
+- ✅ YouTube integration with Google OAuth 2.0
+- ✅ YouTube subscriptions display
+- ✅ Automatic token refresh
 
 ## Tech Stack
 
@@ -102,4 +121,6 @@ Quick setup:
 - Prisma ORM (Database)
 - PostgreSQL (Cloud Database)
 - AES-256-GCM (Encryption)
+- Google OAuth 2.0 (YouTube Integration)
+- YouTube Data API v3
 

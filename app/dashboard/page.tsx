@@ -1,6 +1,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import IntegrationForm from "./components/IntegrationForm";
+import YouTubeIntegration from "./components/YouTubeIntegration";
 
 export default async function Dashboard() {
   const user = await currentUser();
@@ -25,6 +26,7 @@ export default async function Dashboard() {
             </p>
           )}
         </div>
+        <YouTubeIntegration />
         <IntegrationForm />
       </div>
     </main>
