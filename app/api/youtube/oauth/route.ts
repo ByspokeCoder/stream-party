@@ -67,7 +67,8 @@ export async function GET(request: NextRequest) {
 
     // Extract base URL from the actual request URL (most reliable)
     const requestUrlObj = new URL(request.url);
-    const baseUrl = `${requestUrlObj.protocol}//${requestUrlObj.host}`;
+    // Use hostname instead of host to avoid including port number
+    const baseUrl = `${requestUrlObj.protocol}//${requestUrlObj.hostname}`;
 
     // Helper to create redirect URL
     const createRedirectUrl = (path: string, params?: Record<string, string>) => {
@@ -91,7 +92,8 @@ export async function GET(request: NextRequest) {
     // Extract the redirect URI from the actual request URL
     // Google redirects back to the exact redirect_uri we sent, so use the request URL
     // Construct redirect_uri by removing the query parameters (code, scope, etc.)
-    const redirectUri = `${requestUrlObj.protocol}//${requestUrlObj.host}${requestUrlObj.pathname}`;
+    // Use hostname instead of host to avoid including port number
+    const redirectUri = `${requestUrlObj.protocol}//${requestUrlObj.hostname}${requestUrlObj.pathname}`;
     
     // Log for debugging
     console.log("OAuth callback received:", {
@@ -179,7 +181,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("YouTube OAuth error:", error);
     const requestUrlObj = new URL(request.url);
-    const baseUrl = `${requestUrlObj.protocol}//${requestUrlObj.host}`;
+    // Use hostname instead of host to avoid including port number
+    const baseUrl = `${requestUrlObj.protocol}//${requestUrlObj.hostname}`;
     const createRedirectUrl = (path: string, params?: Record<string, string>) => {
       const url = new URL(path, baseUrl);
       if (params) {
