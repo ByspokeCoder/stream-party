@@ -13,11 +13,22 @@ A Next.js application for streaming parties.
 
 2. **Or use the keyboard shortcut**: Press `.` (period) on the repository page to open the web editor
 
-3. Once in Codespaces, run:
+3. Once in Codespaces, open the terminal and run:
    ```bash
+   cd stream-party
    npm install
    npm run dev
    ```
+
+4. **Port Forwarding**: 
+   - Open the "Ports" tab in Codespaces (View → Ports or bottom panel)
+   - Ensure port 3000 is forwarded and set to "Public"
+   - Click on the forwarded port URL to open your app
+
+5. **Troubleshooting 502 errors**: 
+   - Make sure `npm install` completed successfully
+   - Verify `npm run dev` is running (you should see "Ready" message)
+   - Check that port 3000 is properly forwarded in the Ports tab
 
 ### Option 2: Local Development
 
