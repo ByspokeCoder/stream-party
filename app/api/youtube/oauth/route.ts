@@ -8,10 +8,11 @@ function getBaseUrl(request: NextRequest): string {
   // Use the host header first (most reliable for Codespaces)
   const host = request.headers.get("host");
   if (host) {
-    // For Codespaces, the host might be like "miniature-waddle-vw4jvvqv776cxp7g-443.app.github.dev"
-    // We need to keep the full hostname but ensure we use https
-    // The port number (like -443) is part of the hostname in Codespaces, not a separate port
-    return `https://${host}`;
+    // Remove any port number from the host header (e.g., "hostname:3000" -> "hostname")
+    // In Codespaces, ports like -3000 are part of the hostname, not separate ports
+    const hostWithoutPort = host.split(":")[0];
+    // Always use https for Codespaces
+    return `https://${hostWithoutPort}`;
   }
   
   // Fallback: extract from request URL
@@ -38,8 +39,19 @@ export async function GET(request: NextRequest) {
     // Get the base URL once (without port for Codespaces)
     const baseUrl = getBaseUrl(request);
 
+    // Helper to create redirect URL
+    const createRedirectUrl = (path: string, params?: Record<string, string>) => {
+      const url = new URL(path, baseUrl);
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          url.searchParams.set(key, value);
+        });
+      }
+      return url.toString();
+    };
+
     if (error) {
-      return NextResponse.redirect(`${baseUrl}/dashboard?error=${encodeURIComponent(error)}`);
+      return NextResponse.redirect(createRedirectUrl("/dashboard", { error }));
     }
 
     if (!code) {
@@ -67,7 +79,7 @@ export async function GET(request: NextRequest) {
         hasClientId: !!clientId,
         hasClientSecret: !!clientSecret,
       });
-      return NextResponse.redirect(`${baseUrl}/dashboard?error=oauth_not_configured`);
+      return NextResponse.redirect(createRedirectUrl("/dashboard", { error: "oauth_not_configured" }));
     }
 
     // Exchange code for tokens
@@ -94,7 +106,7 @@ export async function GET(request: NextRequest) {
         redirectUri,
         clientId: clientId ? `${clientId.substring(0, 10)}...` : 'missing',
       });
-      return NextResponse.redirect(`${baseUrl}/dashboard?error=token_exchange_failed`);
+      return NextResponse.redirect(createRedirectUrl("/dashboard", { error: "token_exchange_failed" }));
     }
 
     const tokens = await tokenResponse.json();
@@ -131,11 +143,20 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.redirect(`${baseUrl}/dashboard?youtube_connected=true`);
+    return NextResponse.redirect(createRedirectUrl("/dashboard", { youtube_connected: "true" }));
   } catch (error) {
     console.error("YouTube OAuth error:", error);
     const baseUrl = getBaseUrl(request);
-    return NextResponse.redirect(`${baseUrl}/dashboard?error=oauth_failed`);
+    const createRedirectUrl = (path: string, params?: Record<string, string>) => {
+      const url = new URL(path, baseUrl);
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          url.searchParams.set(key, value);
+        });
+      }
+      return url.toString();
+    };
+    return NextResponse.redirect(createRedirectUrl("/dashboard", { error: "oauth_failed" }));
   }
 }
 
